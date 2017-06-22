@@ -123,6 +123,9 @@ public:
 
     // evaluate spline at a sorted set of locations x - x0
     void eval(int n, const double* x, double* y, double* dydx = 0, double x0 = 0., int order = 1) const;
+
+    // check if there is data for this spline
+    operator bool() const { return m_n > 0; }
 };
 
 
