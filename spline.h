@@ -122,7 +122,7 @@ public:
     double deriv(int order, double x) const;
 
     // evaluate spline at a sorted set of locations x - x0
-    void eval(int n, const double* x, double* y, double* dydx = 0, double x0 = 0., int order = 1) const;
+    void eval(int n, const double* x, double* y, double* dydx = 0, double x0 = 0., double xScale = 1., int order = 1) const;
 
     // check if there is data for this spline
     operator bool() const { return m_n > 0; }
@@ -483,7 +483,7 @@ double spline::deriv(int order, double x) const
 
 //=============================================================================
 
-void spline::eval(int n, const double* x, double* y, double* dydx, double x0, int order) const
+void spline::eval(int n, const double* x, double* y, double* dydx, double x0, double xScale, int order) const
 {
   assert(n > 0);
   assert(m_n > 1);
@@ -494,6 +494,7 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, in
   const double*     start = m_x;
   const double*     end   = m_x + m_n;
 
+  x0               *= xScale;
   for (int i = 0; i < n; ++i) {
     const double    relX  = x[i] - x0;
 
@@ -505,7 +506,7 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, in
     // Evaluate spline at the located point
     y[i]            = valueAt(relX, idx);
     if (dydx)
-      dydx[i]       = derivAt(order, relX, idx);
+      dydx[i]       = derivAt(order, relX, idx) * xScale;
   }
 }
 
