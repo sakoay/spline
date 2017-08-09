@@ -31,6 +31,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 
 // unnamed namespace only because the implementation is in this
@@ -515,10 +516,16 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, do
 
 void spline::eval(int iStart, int iEnd, double x0, double* y, double* dydx, double xScale, int order) const
 {
+  if (x0 < 0 || x0 > 1) {
+    int   iOffset   = std::floor(x0);
+    iStart         += iOffset;
+    x0             -= iOffset;
+  }
+
   assert(m_n > 1);
   assert(iStart >= 0 && iStart <  m_n);
   assert(iEnd   >= 0 && iEnd   <= m_n);
-  assert(x0 >= 0 && x0 < 1);
+  assert(x0     >= 0 && x0     <  1  );
 
   x0               *= xScale;
   for (int i = iStart, j = 0; i < iEnd; ++i, ++j) {
