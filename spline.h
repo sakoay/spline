@@ -124,6 +124,9 @@ public:
     // evaluate spline at a sorted set of locations x - x0
     void eval(int n, const double* x, double* y, double* dydx = 0, double x0 = 0., double xScale = 1., int order = 1) const;
 
+    // evaluate spline at the same points as the data used to define the spline, except for a constant offset
+    void eval(int iStart, int iEnd, double x0, double* y, double* dydx = 0, double xScale = 1., int order = 1) const;
+
     // check if there is data for this spline
     operator bool() const { return m_n > 0; }
 };
@@ -510,7 +513,20 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, do
   }
 }
 
+void spline::eval(int iStart, int iEnd, double x0, double* y, double* dydx, double xScale, int order) const
+{
+  assert(m_n > 1);
+  assert(iStart >= 0 && iStart <  m_n);
+  assert(iEnd   >= 0 && iEnd   <= m_n);
+  assert(x0 >= 0 && x0 < 1);
 
+  x0               *= xScale;
+  for (int i = iStart, j = 0; i < iEnd; ++i, ++j) {
+    y[j]            = valueAt(m_x[i] + x0, i);
+    if (dydx)
+      dydx[j]       = derivAt(order, x0, i) * xScale;
+  }
+}
 
 } // namespace tk
 
