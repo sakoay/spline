@@ -529,9 +529,10 @@ void spline::eval(int iStart, int iEnd, double x0, double* y, double* dydx, doub
 
   x0               *= xScale;
   for (int i = iStart, j = 0; i < iEnd; ++i, ++j) {
-    y[j]            = valueAt(m_x[i] + x0, i);
+    double          x     = m_x[i] + x0;
+    y[j]            = valueAt(x, i);
     if (dydx)
-      dydx[j]       = derivAt(order, x0, i) * xScale;
+      dydx[j]       = derivAt(order, x, i) * xScale;
   }
 }
 
