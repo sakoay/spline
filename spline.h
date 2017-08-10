@@ -123,10 +123,12 @@ public:
     double deriv(int order, double x) const;
 
     // evaluate spline at a sorted set of locations x - x0
-    void eval(int n, const double* x, double* y, double* dydx = 0, double x0 = 0., double xScale = 1., int order = 1) const;
+    template<typename XVector, typename YVector>
+    void eval(const XVector& x, YVector& y, YVector* dydx = 0, double x0 = 0., double xScale = 1., int order = 1) const;
 
     // evaluate spline at the same points as the data used to define the spline, except for a constant offset
-    void eval(int iStart, int iEnd, double x0, double* y, double* dydx = 0, double xScale = 1., int order = 1) const;
+    template<typename Vector>
+    void offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx = 0, double xScale = 1., int order = 1) const;
 
     // check if there is data for this spline
     operator bool() const { return m_n > 0; }
@@ -487,9 +489,11 @@ double spline::deriv(int order, double x) const
 
 //=============================================================================
 
-void spline::eval(int n, const double* x, double* y, double* dydx, double x0, double xScale, int order) const
+template<typename XVector, typename YVector>
+void spline::eval(const XVector& x, YVector& y, YVector* dydx, double x0, double xScale, int order) const
 {
-  assert(n > 0);
+  assert(x.size() == y.size());
+  assert(!dydx || x.size() == dydx->size());
   assert(m_n > 1);
 
 
@@ -499,7 +503,7 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, do
   const double*     end   = m_x + m_n;
 
   x0               *= xScale;
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < x.size(); ++i) {
     const double    relX  = x[i] - x0;
 
     // Find the closest point m_x[idx] < x, assuming ordered x
@@ -510,29 +514,32 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, do
     // Evaluate spline at the located point
     y[i]            = valueAt(relX, idx);
     if (dydx)
-      dydx[i]       = derivAt(order, relX, idx) * xScale;
+      (*dydx)[i]    = derivAt(order, relX, idx) * xScale;
   }
 }
 
-void spline::eval(int iStart, int iEnd, double x0, double* y, double* dydx, double xScale, int order) const
+template<typename Vector>
+void spline::offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx, double xScale, int order) const
 {
-  if (x0 < 0 || x0 >= 1) {
+  while (x0 < 0 || x0 >= 1) {
     int   iOffset   = std::floor(x0);
     iStart         += iOffset;
+    iEnd           += iOffset;
     x0             -= iOffset;
   }
 
   assert(m_n > 1);
   assert(iStart >= 0 && iStart <  m_n);
   assert(iEnd   >= 0 && iEnd   <= m_n);
-  assert(x0     >= 0 && x0     <  1  );
+  assert(iEnd - iStart == y.size());
+  assert(!dydx || y.size() == dydx->size());
 
   x0               *= xScale;
   for (int i = iStart, j = 0; i < iEnd; ++i, ++j) {
     double          x     = m_x[i] + x0;
     y[j]            = valueAt(x, i);
     if (dydx)
-      dydx[j]       = derivAt(order, x, i) * xScale;
+      (*dydx)[j]    = derivAt(order, x, i) * xScale;
   }
 }
 
