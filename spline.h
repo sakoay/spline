@@ -516,7 +516,7 @@ void spline::eval(int n, const double* x, double* y, double* dydx, double x0, do
 
 void spline::eval(int iStart, int iEnd, double x0, double* y, double* dydx, double xScale, int order) const
 {
-  if (x0 < 0 || x0 > 1) {
+  if (x0 < 0 || x0 >= 1) {
     int   iOffset   = std::floor(x0);
     iStart         += iOffset;
     x0             -= iOffset;
