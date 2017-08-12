@@ -105,12 +105,24 @@ private:
 
 public:
     // set default boundary condition to be zero curvature at both ends
-    spline(): m_n(0), m_x(0), m_y(0),
-        m_left(second_deriv), m_right(second_deriv),
-        m_left_value(0.0), m_right_value(0.0),
-        m_force_linear_extrapolation(false)
+    spline() { clear(); }
+
+    // SAK : clear all information stored in this spline
+    void clear() 
     {
-        ;
+      m_n                           = 0;
+      m_x                           = 0;
+      m_y                           = 0;
+      m_a.clear();
+      m_b.clear();
+      m_c.clear();
+      m_b0                          = 0;
+      m_c0                          = 0;
+      m_left                        = second_deriv;
+      m_right                       = second_deriv;
+      m_left_value                  = 0.0;
+      m_right_value                 = 0.0;
+      m_force_linear_extrapolation  = false;
     }
 
     // optional, but if called it has to come be before set_points()
@@ -132,6 +144,14 @@ public:
 
     // check if there is data for this spline
     operator bool() const { return m_n > 0; }
+
+    // check if the data for this spline is the same 
+    bool isequal(int n, const double* x, const double* y) const {
+      if (m_n != n)       return false;
+      if (x && m_x != x)  return false;
+      if (y && m_y != y)  return false;
+      return true;
+    }
 };
 
 
