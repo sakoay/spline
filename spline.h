@@ -139,8 +139,8 @@ public:
     void eval(const XVector& x, YVector& y, YVector* dydx = 0, double x0 = 0., double xScale = 1., int order = 1) const;
 
     // evaluate spline at the same points as the data used to define the spline, except for a constant offset
-    template<typename Vector>
-    void offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx = 0, double xScale = 1., int order = 1) const;
+    template<bool positiveY, typename Vector>
+    void offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx = 0, int order = 1) const;
 
     // check if there is data for this spline
     operator bool() const { return m_n > 0; }
@@ -538,8 +538,8 @@ void spline::eval(const XVector& x, YVector& y, YVector* dydx, double x0, double
   }
 }
 
-template<typename Vector>
-void spline::offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx, double xScale, int order) const
+template<bool positiveY, typename Vector>
+void spline::offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx, int order) const
 {
   while (x0 < 0 || x0 >= 1) {
     int   iOffset   = std::floor(x0);
@@ -554,12 +554,13 @@ void spline::offsetEval(int iStart, int iEnd, double x0, Vector& y, Vector* dydx
   assert(iEnd - iStart == y.size());
   assert(!dydx || y.size() == dydx->size());
 
-  x0               *= xScale;
   for (int i = iStart, j = 0; i < iEnd; ++i, ++j) {
     double          x     = m_x[i] + x0;
     y[j]            = valueAt(x, i);
+    if (positiveY && y[j] < 0)
+      y[j]          = 0;
     if (dydx)
-      (*dydx)[j]    = derivAt(order, x, i) * xScale;
+      (*dydx)[j]    = derivAt(order, x, i);
   }
 }
 
