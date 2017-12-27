@@ -131,7 +131,9 @@ public:
                       bool force_linear_extrapolation=false);
     void set_points(int n, const double* x,
                     const double* y, bool cubic_spline);
-    double operator() (double x) const;
+
+    template<typename Number = double>
+    double operator() (double x, Number* dydx = 0, int order = 1) const;
     double deriv(int order, double x) const;
 
     // evaluate spline at a sorted set of locations x - x0
@@ -431,12 +433,14 @@ double spline::valueAt(double x, int idx) const
     return interpol;
 }
 
-double spline::operator() (double x) const
+template<typename Number>
+double spline::operator() (double x, Number* dydx, int order) const
 {
     // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
     const double* it=std::lower_bound(m_x,m_x + m_n,x);
     int idx=std::max( int(it-m_x)-1, 0);
 
+    if (dydx) *dydx = derivAt(order, x, idx);
     return valueAt(x, idx);
 }
 
